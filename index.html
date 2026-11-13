@@ -2,6 +2,9 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <!-- ป้องกัน Clickjacking และควบคุมการส่งข้อมูล Referrer -->
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบ Fee Reminder คณะวารสารศาสตร์และสื่อสารมวลชน</title>
 
@@ -155,7 +158,7 @@
         <div class="col-lg-6 text-center text-lg-end">
           <p class="mb-0 text-muted small">
             Powered by 
-            <a href="https://jc.tu.ac.th/th/personnel/staff#committee_214" target="_blank" class="footer-link">
+            <a href="https://jc.tu.ac.th/th/personnel/staff#committee_214" target="_blank" rel="noopener noreferrer" class="footer-link">
               งานเทคโนโลยีดิจิทัลและการสื่อสาร
             </a>
           </p>
@@ -204,12 +207,19 @@
       }
     }
 
-    // --- 3. การทำงานเมื่อกดปุ่มเข้าสู่ระบบ ---
+    // --- 3. การทำงานเมื่อกดปุ่มเข้าสู่ระบบ (เพิ่มการตรวจสอบความปลอดภัยของ URL) ---
     function handleMenuClick(e) {
       e.preventDefault(); 
-      const targetUrl = this.href; 
+      const targetUrl = this.getAttribute('href'); 
 
-      if (!targetUrl || targetUrl === '#') return;
+      // ตรวจสอบว่าลิงก์ต้องเป็นของ Google Apps Script หรือ Safari Scheme ที่เรากำหนดเท่านั้น
+      const allowedPrefix1 = 'https://script.google.com/';
+      const allowedPrefix2 = 'x-safari-https://script.google.com/';
+
+      if (!targetUrl || (!targetUrl.startsWith(allowedPrefix1) && !targetUrl.startsWith(allowedPrefix2))) {
+        console.error("Blocked unauthorized redirect URL:", targetUrl);
+        return;
+      }
 
       // แสดง Loading อนิเมชันด้วย SweetAlert2
       Swal.fire({
